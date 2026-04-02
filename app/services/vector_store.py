@@ -15,10 +15,12 @@ class VectorStore:
             print(f"Connected to Qdrant server at {settings.QDRANT_HOST}:{settings.QDRANT_PORT}")
         except Exception as e:
             print(f"Qdrant server unreachable ({e}). Falling back to local storage at ./qdrant_data")
-            # Fallback to local storage
             self.client = QdrantClient(path="./qdrant_data")
             
-        self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.openai_client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENROUTER_BASE_URL
+        )
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         
         # Initialize collection if not exists
@@ -26,18 +28,23 @@ class VectorStore:
 
     def _ensure_collection(self):
         try:
-            self.client.get_collection(self.collection_name)
+            current_info = self.client.get_collection(self.collection_name)
+            # Check if size matches 3072
+            if current_info.config.params.vectors.size != 3072:
+                print(f"Collection size mismatch ({current_info.config.params.vectors.size} vs 3072). Recreating...")
+                self.client.delete_collection(self.collection_name)
+                raise Exception("Mismatch")
         except Exception:
-            # text-embedding-3-small is 1536 dims
+            # gemini-embedding-001 is 3072 dims
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+                vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
             )
 
     def get_embeddings(self, texts: List[str]) -> List[List[float]]:
         response = self.openai_client.embeddings.create(
             input=texts,
-            model="text-embedding-3-small"
+            model="models/gemini-embedding-001"
         )
         return [data.embedding for data in response.data]
 
@@ -67,13 +74,13 @@ class VectorStore:
     def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
         query_vector = self.get_embeddings([query])[0]
         
-        results = self.client.search(
+        results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=limit,
             with_payload=True
         )
         
-        return [res.payload for res in results]
+        return [res.payload for res in results.points]
 
 vector_store = VectorStore()

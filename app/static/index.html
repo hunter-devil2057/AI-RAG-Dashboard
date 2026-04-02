@@ -72,9 +72,13 @@
                         body: formData
                     });
                     const data = await res.json();
+                    if (!res.ok) {
+                        alert(`Upload Error: ${data.detail || 'Unknown error'}`);
+                        return;
+                    }
                     alert(`Success: ${data.filename} indexed building ${data.chunks_processed} chunks!`);
                 } catch (err) {
-                    alert('Upload failed: ' + err.message);
+                    alert('Network error: ' + err.message);
                 } finally {
                     setUploading(false);
                     setFile(null);
@@ -97,9 +101,13 @@
                         body: JSON.stringify({ query: userMsg.content, session_id: sessionId })
                     });
                     const data = await res.json();
+                    if (!res.ok) {
+                        setChatMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Error: " + (data.detail || 'Failed to get response') }]);
+                        return;
+                    }
                     setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
                 } catch (err) {
-                    setChatMessages(prev => [...prev, { role: 'assistant', content: "Error: " + err.message }]);
+                    setChatMessages(prev => [...prev, { role: 'assistant', content: "📡 Network Error: " + err.message }]);
                 } finally {
                     setLoading(false);
                 }

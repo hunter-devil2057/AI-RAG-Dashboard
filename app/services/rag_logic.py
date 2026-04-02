@@ -5,7 +5,10 @@ from typing import List, Dict
 
 class RAGService:
     def __init__(self):
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENROUTER_BASE_URL
+        )
 
     def generate_response(self, query: str, history: List[Dict[str, str]]) -> str:
         # 1. Search for context
@@ -34,7 +37,7 @@ class RAGService:
         
         # 4. Generate completions
         response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="models/gemini-flash-latest",
             messages=messages,
             temperature=0.7
         )

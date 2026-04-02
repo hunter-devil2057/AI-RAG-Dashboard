@@ -2,8 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
-    # OpenAI Settings
+    # OpenAI / OpenRouter Settings
     OPENAI_API_KEY: str
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     # Qdrant Settings
     QDRANT_HOST: str = "localhost"

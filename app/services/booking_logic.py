@@ -13,7 +13,10 @@ class BookingDetails(BaseModel):
 
 class IntentExtractor:
     def __init__(self):
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            base_url=settings.OPENROUTER_BASE_URL
+        )
 
     def extract(self, query: str, history: list = []) -> BookingDetails:
         """Extracts booking intent and details from the query and history."""
@@ -31,13 +34,16 @@ class IntentExtractor:
         user_input = f"History:\n{history_str}\n\nQuery: {query}"
         
         try:
-            # We use tool/function calling for structured extraction
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ]
+            
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_input}
-                ],
+                model="models/gemini-flash-latest",
+                messages=messages,
+                temperature=0,
+                response_format={"type": "json_object"},
                 tools=[{
                     "type": "function",
                     "function": {
