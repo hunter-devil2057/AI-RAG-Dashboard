@@ -47,8 +47,8 @@ Follow these steps to set up the project on your local machine:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/hunter-devil2057/ai-rag-backend.git
-cd ai-rag-backend
+git clone https://github.com/hunter-devil2057/AI-RAG-Dashboard.git
+cd AI-RAG-Dashboard
 ```
 
 ### 2. Install Dependencies
