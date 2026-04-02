@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic-settings
+qdrant-client
+redis
+openai
+sqlalchemy[asyncio]
+aiosqlite
+pymupdf
+tiktoken
+python-multipart
+python-dotenv
